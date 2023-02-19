@@ -3,11 +3,10 @@
 
 import _thread
 import time
-from Max6675 import MAX6675
-from machine import Pin
-from machine import I2C
-from lcd_api import LcdApi
-from pico_i2c_lcd import I2cLcd
+from lib.Max6675 import MAX6675
+from machine import Pin, I2C
+#from lib.lcd_api import LcdApi
+from lib.pico_i2c_lcd import I2cLcd
 
 so = Pin(15, Pin.IN)
 sck = Pin(13, Pin.OUT)
@@ -97,7 +96,6 @@ def core0():
     startbool = False
     ipaddress = 'connecting...'
     from secrets import secrets
-
     from machine import Pin
     import uasyncio as asyncio
     
@@ -122,9 +120,8 @@ def core0():
     
     
     relay = Pin(2, Pin.OUT)
-    onboard = Pin("LED", Pin.OUT, value=0)
-
-    expression = re.compile("\D+")
+    onboard = Pin("LED", Pin.OUT, value=0) # type: ignore
+    expression = re.compile(r'\D+')
 
     ssid = secrets['ssid']
     password = secrets['pw']
@@ -163,7 +160,7 @@ def core0():
     cssresponse = get_css('style.css')
     def connect_to_network():
         wlan.active(True)
-        wlan.config(pm = 0xa11140)  # Disable power-save mode
+        wlan.config(pm = 0xa11140)  # Disable power-save mode # type: ignore
         wlan.connect(ssid, password)
 
         max_wait = 10
@@ -204,6 +201,7 @@ def core0():
         print( 'relay on = ' + str(start))
         print( 'relay off = ' + str(stop))
         submit = request.find('submit')
+        about = -1
         if findGet != -1:
             css = request.find('/style.css')
             about = request.find('/about.html')
@@ -239,6 +237,7 @@ def core0():
             print("uploaded to db!")
             replace_html()
         if submit != -1:
+            import machine
             machine.reset()
         if about != -1:
             writer.write('HTTP/1.0 200 OK\r\nContent-type: text/html\r\n\r\n')
@@ -290,7 +289,7 @@ def core0():
 
 
 def core1():
-    i2c = I2C(0, sda=machine.Pin(0), scl=machine.Pin(1), freq=400000)
+    i2c = I2C(0, sda=Pin(0), scl=Pin(1), freq=400000)
     lcd = I2cLcd(i2c, I2C_ADDR, I2C_NUM_ROWS, I2C_NUM_COLS)
     lcd.move_to(5,0)
     lcd.putstr("FlowPI")
